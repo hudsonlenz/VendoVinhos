@@ -9,6 +9,7 @@ const grid = document.getElementById("wineGrid");
 const searchInput = document.getElementById("searchInput");
 const filterChips = document.getElementById("filterChips");
 const staffToggle = document.getElementById("staffToggle");
+const addWineBtn = document.getElementById("addWineBtn");
 
 const loginModal = document.getElementById("loginModal");
 const loginForm = document.getElementById("loginForm");
@@ -242,9 +243,11 @@ function updateStaffUI() {
   if (currentUser) {
     staffToggle.textContent = currentUser.email.split("@")[0] + " · Sair";
     staffToggle.classList.add("logged-in");
+    addWineBtn.classList.remove("hidden");
   } else {
     staffToggle.textContent = "Área da equipe";
     staffToggle.classList.remove("logged-in");
+    addWineBtn.classList.add("hidden");
   }
   renderGrid();
 }
@@ -379,14 +382,20 @@ function renderEditPhotos() {
 }
 
 function openEditModal(wine) {
-  editTargetWine = wine;
-  editPhotos = getImages(wine).map(url => ({ type: "existing", url }));
-  document.getElementById("editName").value = wine.name;
-  document.getElementById("editVintage").value = wine.vintage || "";
-  document.getElementById("editCategory").value = wine.category;
-  document.getElementById("editDescription").value = wine.description || "";
-  document.getElementById("editPrice").value = wine.price;
-  document.getElementById("editStock").value = wine.stock;
+  editTargetWine = wine || null;
+  editPhotos = wine ? getImages(wine).map(url => ({ type: "existing", url })) : [];
+
+  document.getElementById("editModalTitle").textContent = wine ? "Editar vinho" : "Adicionar vinho";
+  document.getElementById("editModalSub").textContent = wine
+    ? "Altere as informações e/ou a foto do anúncio."
+    : "Preencha os dados do novo vinho.";
+
+  document.getElementById("editName").value = wine ? wine.name : "";
+  document.getElementById("editVintage").value = wine ? (wine.vintage || "") : "";
+  document.getElementById("editCategory").value = wine ? wine.category : "";
+  document.getElementById("editDescription").value = wine ? (wine.description || "") : "";
+  document.getElementById("editPrice").value = wine ? wine.price : "";
+  document.getElementById("editStock").value = wine ? wine.stock : 1;
   editImageFile.value = "";
   editImageStatus.textContent = "";
   editError.classList.add("hidden");
@@ -397,6 +406,8 @@ function openEditModal(wine) {
 document.getElementById("closeEdit").addEventListener("click", () => {
   editModal.classList.add("hidden");
 });
+
+addWineBtn.addEventListener("click", () => openEditModal(null));
 
 editImageFile.addEventListener("change", async () => {
   const files = Array.from(editImageFile.files);
@@ -441,15 +452,39 @@ editImageFile.addEventListener("change", async () => {
 
 editForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (!editTargetWine || !currentUser) return;
+  if (!currentUser) return;
 
   const submitBtn = editForm.querySelector(".primary-btn");
   submitBtn.disabled = true;
   submitBtn.textContent = "Salvando...";
 
-  try {
-    const imageUrls = [];
+  const isNew = !editTargetWine;
 
+  try {
+    const baseFields = {
+      name: document.getElementById("editName").value.trim(),
+      vintage: document.getElementById("editVintage").value.trim() || null,
+      category: document.getElementById("editCategory").value.trim(),
+      description: document.getElementById("editDescription").value.trim(),
+      price: parseFloat(document.getElementById("editPrice").value),
+      stock: parseInt(document.getElementById("editStock").value, 10),
+    };
+
+    // Vinho novo: cria a linha primeiro pra ter um ID (necessário pro caminho das fotos)
+    if (isNew) {
+      const nextSortOrder = wines.reduce((max, w) => Math.max(max, w.sort_order || 0), 0) + 1;
+      const { data, error: insertError } = await client
+        .from("wines")
+        .insert({ ...baseFields, image_urls: [], sort_order: nextSortOrder })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      editTargetWine = data;
+      wines.push(data);
+    }
+
+    const imageUrls = [];
     for (const photo of editPhotos) {
       if (photo.type === "existing") {
         imageUrls.push(photo.url);
@@ -468,12 +503,7 @@ editForm.addEventListener("submit", async (e) => {
     }
 
     const updates = {
-      name: document.getElementById("editName").value.trim(),
-      vintage: document.getElementById("editVintage").value.trim() || null,
-      category: document.getElementById("editCategory").value.trim(),
-      description: document.getElementById("editDescription").value.trim(),
-      price: parseFloat(document.getElementById("editPrice").value),
-      stock: parseInt(document.getElementById("editStock").value, 10),
+      ...baseFields,
       image_urls: imageUrls,
       image_url: imageUrls[0] || null,
     };
@@ -489,7 +519,7 @@ editForm.addEventListener("submit", async (e) => {
     editModal.classList.add("hidden");
     buildFilterChips();
     renderGrid();
-    showToast("Vinho atualizado com sucesso!");
+    showToast(isNew ? "Vinho adicionado ao catálogo!" : "Vinho atualizado com sucesso!");
   } catch (err) {
     console.error(err);
     editError.textContent = "Erro ao salvar. Confira os campos e tente de novo.";
