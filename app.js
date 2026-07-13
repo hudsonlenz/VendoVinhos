@@ -86,8 +86,10 @@ function renderGrid() {
   grid.innerHTML = filtered.map(renderCard).join("");
 
   filtered.forEach(w => {
-    const btn = grid.querySelector(`.sell-btn[data-id="${w.id}"]`);
-    if (btn) btn.addEventListener("click", () => openSaleModal(w));
+    const sellBtn = grid.querySelector(`.sell-btn[data-id="${w.id}"]`);
+    if (sellBtn) sellBtn.addEventListener("click", () => openSaleModal(w));
+    const editBtn = grid.querySelector(`.edit-btn[data-id="${w.id}"]`);
+    if (editBtn) editBtn.addEventListener("click", () => openEditModal(w));
   });
 }
 
@@ -95,13 +97,15 @@ function renderCard(w) {
   const isOut = w.stock <= 0;
   const lowStock = !isOut && w.stock <= 2;
   const priceStr = Number(w.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  // Estoque (esgotado, últimas unidades, contagem) só aparece pra quem está logado
+  const showStockHints = !!currentUser;
 
   return `
   <div class="wine-card">
     <div class="bottle-wrap">
       ${w.image_url ? `<img src="${w.image_url}" alt="${w.name}">` : bottlePlaceholderSVG()}
-      ${isOut ? `<div class="stamp">Esgotado</div>` : ""}
-      ${lowStock ? `<div class="low-stock-badge">Últimas unidades</div>` : ""}
+      ${showStockHints && isOut ? `<div class="stamp">Esgotado</div>` : ""}
+      ${showStockHints && lowStock ? `<div class="low-stock-badge">Últimas unidades</div>` : ""}
     </div>
     <h3 class="wine-name">${w.name}${w.vintage ? " " + w.vintage : ""}</h3>
     <p class="wine-vintage">${w.category}</p>
@@ -109,6 +113,7 @@ function renderCard(w) {
     <p class="wine-price">R$ ${priceStr}</p>
     <div class="staff-controls ${currentUser ? "visible" : ""}">
       <span class="stock-count">Estoque: ${w.stock}</span>
+      <button class="edit-btn" data-id="${w.id}">Editar</button>
       <button class="sell-btn" data-id="${w.id}" ${isOut ? "disabled" : ""}>
         ${isOut ? "Sem estoque" : "Marcar venda"}
       </button>
@@ -227,6 +232,106 @@ saleForm.addEventListener("submit", async (e) => {
   saleModal.classList.add("hidden");
   renderGrid();
   showToast(`Venda registrada: ${qty}x ${saleTargetWine.name}`);
+});
+
+// ---------- Edit wine ----------
+
+const editModal = document.getElementById("editModal");
+const editForm = document.getElementById("editForm");
+const editError = document.getElementById("editError");
+const editImagePreview = document.getElementById("editImagePreview");
+const editImageFile = document.getElementById("editImageFile");
+let editTargetWine = null;
+
+function openEditModal(wine) {
+  editTargetWine = wine;
+  document.getElementById("editName").value = wine.name;
+  document.getElementById("editVintage").value = wine.vintage || "";
+  document.getElementById("editCategory").value = wine.category;
+  document.getElementById("editDescription").value = wine.description || "";
+  document.getElementById("editPrice").value = wine.price;
+  document.getElementById("editStock").value = wine.stock;
+  editImageFile.value = "";
+  if (wine.image_url) {
+    editImagePreview.src = wine.image_url;
+    editImagePreview.classList.remove("hidden");
+  } else {
+    editImagePreview.classList.add("hidden");
+  }
+  editError.classList.add("hidden");
+  editModal.classList.remove("hidden");
+}
+
+document.getElementById("closeEdit").addEventListener("click", () => {
+  editModal.classList.add("hidden");
+});
+
+editImageFile.addEventListener("change", () => {
+  const file = editImageFile.files[0];
+  if (!file) return;
+  editImagePreview.src = URL.createObjectURL(file);
+  editImagePreview.classList.remove("hidden");
+});
+
+editForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!editTargetWine || !currentUser) return;
+
+  const submitBtn = editForm.querySelector(".primary-btn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Salvando...";
+
+  try {
+    let imageUrl = editTargetWine.image_url;
+    const file = editImageFile.files[0];
+
+    if (file) {
+      const ext = file.name.split(".").pop();
+      const path = `${editTargetWine.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await client
+        .storage
+        .from("wine-photos")
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = client
+        .storage
+        .from("wine-photos")
+        .getPublicUrl(path);
+      imageUrl = publicData.publicUrl;
+    }
+
+    const updates = {
+      name: document.getElementById("editName").value.trim(),
+      vintage: document.getElementById("editVintage").value.trim() || null,
+      category: document.getElementById("editCategory").value.trim(),
+      description: document.getElementById("editDescription").value.trim(),
+      price: parseFloat(document.getElementById("editPrice").value),
+      stock: parseInt(document.getElementById("editStock").value, 10),
+      image_url: imageUrl,
+    };
+
+    const { error: updateError } = await client
+      .from("wines")
+      .update(updates)
+      .eq("id", editTargetWine.id);
+
+    if (updateError) throw updateError;
+
+    Object.assign(editTargetWine, updates);
+    editModal.classList.add("hidden");
+    buildFilterChips();
+    renderGrid();
+    showToast("Vinho atualizado com sucesso!");
+  } catch (err) {
+    console.error(err);
+    editError.textContent = "Erro ao salvar. Confira os campos e tente de novo.";
+    editError.classList.remove("hidden");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Salvar alterações";
+  }
 });
 
 // ---------- Search ----------
