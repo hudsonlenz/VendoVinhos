@@ -38,6 +38,24 @@ function bottlePlaceholderSVG() {
   </svg>`;
 }
 
+function flutePlaceholderSVG() {
+  return `<svg class="bottle-icon" viewBox="0 0 64 120" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 8h24l-4.5 38c-1 9-7.5 15.5-9.5 15.5s-8.5-6.5-9.5-15.5z"
+      fill="none" stroke="#1b1815" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="32" y1="61.5" x2="32" y2="100" stroke="#1b1815" stroke-width="2"/>
+    <line x1="32" y1="100" x2="32" y2="108" stroke="#1b1815" stroke-width="2"/>
+    <line x1="17" y1="108" x2="47" y2="108" stroke="#1b1815" stroke-width="2"/>
+    <circle cx="27" cy="20" r="1.3" fill="#1b1815" opacity="0.3"/>
+    <circle cx="36" cy="26" r="1" fill="#1b1815" opacity="0.3"/>
+    <circle cx="29" cy="33" r="1" fill="#1b1815" opacity="0.3"/>
+    <circle cx="33" cy="42" r="0.9" fill="#1b1815" opacity="0.3"/>
+  </svg>`;
+}
+
+function isEspumante(w) {
+  return (w.category || "").toLowerCase().includes("espumante");
+}
+
 // Retorna a lista de fotos de um vinho, com fallback pra coluna antiga image_url
 function getImages(w) {
   if (Array.isArray(w.image_urls) && w.image_urls.length > 0) return w.image_urls;
@@ -140,7 +158,8 @@ function renderCard(w) {
     <div class="bottle-wrap">
       ${images.length > 0
         ? `<img src="${images[0]}" alt="${w.name}" class="bottle-photo" data-id="${w.id}">`
-        : bottlePlaceholderSVG()}
+        : (isEspumante(w) ? flutePlaceholderSVG() : bottlePlaceholderSVG())}
+      ${isEspumante(w) ? `<div class="espumante-badge">✨ Espumante</div>` : ""}
       ${images.length > 1 ? `<div class="photo-count-badge">${images.length} fotos</div>` : ""}
       ${showStockHints && isOut ? `<div class="stamp">Esgotado</div>` : ""}
       ${showStockHints && lowStock ? `<div class="low-stock-badge">Últimas unidades</div>` : ""}
