@@ -98,7 +98,8 @@
 
       <label>Foto da garrafa</label>
       <img id="editImagePreview" class="edit-preview hidden">
-      <input type="file" id="editImageFile" accept="image/*">
+      <input type="file" id="editImageFile" accept="image/*,.heic,.heif">
+      <p class="stock-hint" id="editImageStatus"></p>
 
       <p id="editError" class="error-text hidden"></p>
       <button type="submit" class="primary-btn">Salvar alterações</button>
@@ -108,6 +109,7 @@
 
 <div id="toast" class="toast hidden"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
