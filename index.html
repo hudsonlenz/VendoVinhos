@@ -96,15 +96,26 @@
       <label>Estoque</label>
       <input type="number" id="editStock" min="0" required>
 
-      <label>Foto da garrafa</label>
-      <img id="editImagePreview" class="edit-preview hidden">
-      <input type="file" id="editImageFile" accept="image/*,.heic,.heif">
+      <label>Fotos da garrafa</label>
+      <div id="editPhotosGrid" class="edit-photos-grid"></div>
+      <input type="file" id="editImageFile" accept="image/*,.heic,.heif" multiple>
       <p class="stock-hint" id="editImageStatus"></p>
 
       <p id="editError" class="error-text hidden"></p>
       <button type="submit" class="primary-btn">Salvar alterações</button>
     </form>
   </div>
+</div>
+
+<!-- Lightbox: foto ampliada, com navegação -->
+<div id="lightbox" class="lightbox hidden">
+  <button id="closeLightbox" class="lightbox-close">&times;</button>
+  <button id="lightboxPrev" class="lightbox-nav lightbox-nav-prev hidden" aria-label="Foto anterior">&#8249;</button>
+  <div id="lightboxStage" class="lightbox-stage">
+    <img id="lightboxImg" src="" alt="">
+  </div>
+  <button id="lightboxNext" class="lightbox-nav lightbox-nav-next hidden" aria-label="Próxima foto">&#8250;</button>
+  <div id="lightboxCounter" class="lightbox-counter"></div>
 </div>
 
 <div id="toast" class="toast hidden"></div>
