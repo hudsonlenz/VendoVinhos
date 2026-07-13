@@ -1,0 +1,354 @@
+:root {
+  --ink: #1b1815;
+  --cream: #f7f4ee;
+  --paper: #fffefb;
+  --line: #d9d3c7;
+  --bordeaux: #6b1e2b;
+  --bordeaux-dark: #4a1420;
+  --gold: #a9843f;
+  --muted: #8a8478;
+  --shadow: 0 8px 24px rgba(27,24,21,0.08);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+}
+
+.topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 32px 18px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.logo {
+  font-family: 'Sacramento', cursive;
+  font-size: 52px;
+  font-weight: 400;
+  margin: 0;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.order-line {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.staff-btn {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.staff-btn:hover { background: var(--ink); color: var(--paper); }
+.staff-btn.logged-in {
+  background: var(--bordeaux);
+  border-color: var(--bordeaux);
+  color: var(--paper);
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 32px 60px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.search-input {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  min-width: 260px;
+  flex: 1 1 260px;
+}
+.search-input:focus { outline: 1px solid var(--bordeaux); }
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.wine-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px 28px;
+}
+@media (max-width: 980px) { .wine-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .wine-grid { grid-template-columns: 1fr; } }
+
+.loading { color: var(--muted); font-style: italic; }
+
+.wine-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottle-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(180deg, #eee9dd 0%, #e4ded0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.bottle-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bottle-icon {
+  width: 46%;
+  opacity: 0.55;
+}
+
+.stamp {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-16deg);
+  border: 3px solid var(--bordeaux);
+  color: var(--bordeaux);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 20px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  opacity: 0.88;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.low-stock-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--gold);
+  color: var(--paper);
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 4px 9px;
+  text-transform: uppercase;
+}
+
+.wine-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 19px;
+  margin: 0 0 2px;
+  line-height: 1.25;
+}
+.wine-vintage {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.wine-desc {
+  font-size: 16px;
+  line-height: 1.4;
+  color: #3b362f;
+  margin: 0 0 10px;
+  flex-grow: 1;
+}
+.wine-price {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 19px;
+  margin: 0 0 10px;
+}
+
+.staff-controls {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: auto;
+}
+.staff-controls.visible { display: flex; }
+
+.stock-count {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  color: var(--muted);
+  flex: 1;
+}
+
+.sell-btn {
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bordeaux);
+  color: var(--paper);
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.sell-btn:hover { background: var(--bordeaux-dark); }
+.sell-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+.footer {
+  text-align: center;
+  padding: 30px 0 50px;
+  font-family: 'Sacramento', cursive;
+  font-size: 30px;
+  color: var(--muted);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(27,24,21,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--paper);
+  padding: 34px 32px;
+  max-width: 380px;
+  width: 100%;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+.modal h2 {
+  font-family: 'Playfair Display', serif;
+  margin: 0 0 4px;
+  font-size: 24px;
+}
+.modal-sub {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0 0 20px;
+}
+.modal label {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 14px 0 6px;
+}
+.modal input {
+  width: 100%;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--muted);
+  line-height: 1;
+}
+.primary-btn {
+  margin-top: 20px;
+  width: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 12px;
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.primary-btn:hover { background: var(--bordeaux); }
+
+.error-text { color: var(--bordeaux); font-size: 14px; margin-top: 10px; }
+.stock-hint { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.hidden { display: none !important; }
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 22px;
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  z-index: 200;
+  box-shadow: var(--shadow);
+}
