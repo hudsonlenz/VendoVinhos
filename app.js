@@ -241,10 +241,19 @@ const editForm = document.getElementById("editForm");
 const editError = document.getElementById("editError");
 const editImagePreview = document.getElementById("editImagePreview");
 const editImageFile = document.getElementById("editImageFile");
+const editImageStatus = document.getElementById("editImageStatus");
 let editTargetWine = null;
+let pendingUploadFile = null; // holds the actual file/blob to upload (converted if HEIC)
+
+function isHeic(file) {
+  const name = file.name.toLowerCase();
+  return name.endsWith(".heic") || name.endsWith(".heif") ||
+    file.type === "image/heic" || file.type === "image/heif";
+}
 
 function openEditModal(wine) {
   editTargetWine = wine;
+  pendingUploadFile = null;
   document.getElementById("editName").value = wine.name;
   document.getElementById("editVintage").value = wine.vintage || "";
   document.getElementById("editCategory").value = wine.category;
@@ -252,6 +261,7 @@ function openEditModal(wine) {
   document.getElementById("editPrice").value = wine.price;
   document.getElementById("editStock").value = wine.stock;
   editImageFile.value = "";
+  editImageStatus.textContent = "";
   if (wine.image_url) {
     editImagePreview.src = wine.image_url;
     editImagePreview.classList.remove("hidden");
@@ -266,11 +276,30 @@ document.getElementById("closeEdit").addEventListener("click", () => {
   editModal.classList.add("hidden");
 });
 
-editImageFile.addEventListener("change", () => {
+editImageFile.addEventListener("change", async () => {
   const file = editImageFile.files[0];
   if (!file) return;
-  editImagePreview.src = URL.createObjectURL(file);
-  editImagePreview.classList.remove("hidden");
+
+  if (isHeic(file)) {
+    editImageStatus.textContent = "Convertendo foto (formato iPhone)...";
+    try {
+      const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
+      const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+      pendingUploadFile = jpegBlob;
+      editImagePreview.src = URL.createObjectURL(jpegBlob);
+      editImagePreview.classList.remove("hidden");
+      editImageStatus.textContent = "Foto convertida e pronta para salvar.";
+    } catch (err) {
+      console.error(err);
+      pendingUploadFile = null;
+      editImageStatus.textContent = "Não foi possível converter essa foto. Tente exportar como JPEG antes.";
+    }
+  } else {
+    pendingUploadFile = file;
+    editImagePreview.src = URL.createObjectURL(file);
+    editImagePreview.classList.remove("hidden");
+    editImageStatus.textContent = "";
+  }
 });
 
 editForm.addEventListener("submit", async (e) => {
@@ -285,13 +314,22 @@ editForm.addEventListener("submit", async (e) => {
     let imageUrl = editTargetWine.image_url;
     const file = editImageFile.files[0];
 
-    if (file) {
-      const ext = file.name.split(".").pop();
+    if (file && !pendingUploadFile) {
+      // Usuário escolheu um arquivo mas a conversão HEIC falhou ou ainda não terminou
+      throw new Error("Aguarde a conversão da foto terminar antes de salvar, ou escolha outra imagem.");
+    }
+
+    if (pendingUploadFile) {
+      const isConvertedHeic = isHeic(file) && pendingUploadFile !== file;
+      const ext = isConvertedHeic ? "jpg" : file.name.split(".").pop();
       const path = `${editTargetWine.id}/${Date.now()}.${ext}`;
       const { error: uploadError } = await client
         .storage
         .from("wine-photos")
-        .upload(path, file, { upsert: true });
+        .upload(path, pendingUploadFile, {
+          upsert: true,
+          contentType: isConvertedHeic ? "image/jpeg" : file.type,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -320,13 +358,17 @@ editForm.addEventListener("submit", async (e) => {
     if (updateError) throw updateError;
 
     Object.assign(editTargetWine, updates);
+    pendingUploadFile = null;
+    editImageStatus.textContent = "";
     editModal.classList.add("hidden");
     buildFilterChips();
     renderGrid();
     showToast("Vinho atualizado com sucesso!");
   } catch (err) {
     console.error(err);
-    editError.textContent = "Erro ao salvar. Confira os campos e tente de novo.";
+    editError.textContent = err.message && err.message.includes("conversão")
+      ? err.message
+      : "Erro ao salvar. Confira os campos e tente de novo.";
     editError.classList.remove("hidden");
   } finally {
     submitBtn.disabled = false;
