@@ -253,6 +253,21 @@ main {
 .sell-btn:hover { background: var(--bordeaux-dark); }
 .sell-btn:disabled { background: var(--muted); cursor: not-allowed; }
 
+.edit-btn {
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 7px 11px;
+  cursor: pointer;
+}
+.edit-btn:hover { background: var(--ink); color: var(--paper); }
+
+.staff-controls { flex-wrap: wrap; }
+
 .footer {
   text-align: center;
   padding: 30px 0 50px;
@@ -281,6 +296,31 @@ main {
   width: 100%;
   position: relative;
   box-shadow: var(--shadow);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-wide { max-width: 460px; }
+.modal textarea {
+  width: 100%;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  resize: vertical;
+}
+.edit-preview {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+}
+.modal input[type="file"] {
+  border: none;
+  padding: 6px 0;
+  font-size: 14px;
 }
 .modal h2 {
   font-family: 'Playfair Display', serif;
