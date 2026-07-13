@@ -98,6 +98,8 @@ function renderGrid() {
     if (sellBtn) sellBtn.addEventListener("click", () => openSaleModal(w));
     const editBtn = grid.querySelector(`.edit-btn[data-id="${w.id}"]`);
     if (editBtn) editBtn.addEventListener("click", () => openEditModal(w));
+    const visBtn = grid.querySelector(`.visibility-btn[data-id="${w.id}"]`);
+    if (visBtn) visBtn.addEventListener("click", () => toggleHidden(w));
 
     const photoEl = grid.querySelector(`.bottle-photo[data-id="${w.id}"]`);
     if (photoEl) {
@@ -106,12 +108,32 @@ function renderGrid() {
   });
 }
 
+async function toggleHidden(wine) {
+  const newHidden = !wine.hidden;
+  const { error } = await client
+    .from("wines")
+    .update({ hidden: newHidden })
+    .eq("id", wine.id);
+
+  if (error) {
+    showToast("Erro ao atualizar visibilidade.");
+    console.error(error);
+    return;
+  }
+  wine.hidden = newHidden;
+  renderGrid();
+  showToast(newHidden ? "Anúncio escondido do público." : "Anúncio visível para o público novamente.");
+}
+
 function renderCard(w) {
   const isOut = w.stock <= 0;
   const lowStock = !isOut && w.stock <= 2;
   const priceStr = Number(w.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
   const showStockHints = !!currentUser; // estoque só aparece pra quem está logado
   const images = getImages(w);
+
+  const eyeOpenSVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const eyeOffSVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a20.3 20.3 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
   return `
   <div class="wine-card">
@@ -122,6 +144,7 @@ function renderCard(w) {
       ${images.length > 1 ? `<div class="photo-count-badge">${images.length} fotos</div>` : ""}
       ${showStockHints && isOut ? `<div class="stamp">Esgotado</div>` : ""}
       ${showStockHints && lowStock ? `<div class="low-stock-badge">Últimas unidades</div>` : ""}
+      ${showStockHints && w.hidden ? `<div class="hidden-badge">Oculto do público</div>` : ""}
     </div>
     <h3 class="wine-name">${w.name}${w.vintage ? " " + w.vintage : ""}</h3>
     <p class="wine-vintage">${w.category}</p>
@@ -129,6 +152,9 @@ function renderCard(w) {
     <p class="wine-price">R$ ${priceStr}</p>
     <div class="staff-controls ${currentUser ? "visible" : ""}">
       <span class="stock-count">Estoque: ${w.stock}</span>
+      <button class="icon-btn visibility-btn" data-id="${w.id}" title="${w.hidden ? "Reexibir para o público" : "Esconder do público"}">
+        ${w.hidden ? eyeOffSVG : eyeOpenSVG}
+      </button>
       <button class="edit-btn" data-id="${w.id}">Editar</button>
       <button class="sell-btn" data-id="${w.id}" ${isOut ? "disabled" : ""}>
         ${isOut ? "Sem estoque" : "Marcar venda"}
@@ -257,6 +283,7 @@ staffToggle.addEventListener("click", async () => {
     await client.auth.signOut();
     currentUser = null;
     updateStaffUI();
+    await loadWines();
     showToast("Sessão encerrada.");
   } else {
     loginModal.classList.remove("hidden");
@@ -293,6 +320,7 @@ loginForm.addEventListener("submit", async (e) => {
   loginError.classList.add("hidden");
   loginForm.reset();
   updateStaffUI();
+  await loadWines();
   showToast(`Bem-vindo(a), ${currentUser.email.split("@")[0]}!`);
 });
 
