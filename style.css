@@ -285,6 +285,34 @@ main {
 }
 .edit-btn:hover { background: var(--ink); color: var(--paper); }
 
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.icon-btn:hover { border-color: var(--ink); color: var(--ink); }
+.visibility-btn { cursor: none; }
+
+.hidden-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: var(--muted);
+  color: var(--paper);
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 4px 9px;
+  text-transform: uppercase;
+}
+
 .staff-controls { flex-wrap: wrap; }
 
 .footer {
