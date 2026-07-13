@@ -25,6 +25,7 @@
   <div class="controls">
     <input id="searchInput" type="text" placeholder="Buscar por nome, uva ou safra..." class="search-input">
     <div id="filterChips" class="filter-chips"></div>
+    <button id="addWineBtn" class="staff-btn add-wine-btn hidden">+ Adicionar vinho</button>
   </div>
 
   <div id="wineGrid" class="wine-grid">
@@ -75,8 +76,8 @@
 <div id="editModal" class="modal-overlay hidden">
   <div class="modal modal-wide">
     <button class="modal-close" id="closeEdit">&times;</button>
-    <h2>Editar vinho</h2>
-    <p class="modal-sub">Altere as informações e/ou a foto do anúncio.</p>
+    <h2 id="editModalTitle">Editar vinho</h2>
+    <p class="modal-sub" id="editModalSub">Altere as informações e/ou a foto do anúncio.</p>
     <form id="editForm">
       <label>Nome</label>
       <input type="text" id="editName" required>
