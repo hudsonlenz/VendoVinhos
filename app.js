@@ -533,6 +533,35 @@ editForm.addEventListener("submit", async (e) => {
 // ---------- Search ----------
 searchInput.addEventListener("input", renderGrid);
 
+// ---------- Cursor personalizado ----------
+const cursorDot = document.querySelector(".cursor-dot");
+const cursorRing = document.querySelector(".cursor-ring");
+const CURSOR_HOVER_SELECTOR =
+  "button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn, " +
+  ".primary-btn, .modal-close, .lightbox-nav, .lightbox-close, " +
+  ".remove-photo-btn, .toggle-password";
+
+if (cursorDot && cursorRing && window.matchMedia("(hover: hover)").matches) {
+  document.addEventListener("mousemove", (e) => {
+    cursorDot.style.left = `${e.clientX}px`;
+    cursorDot.style.top = `${e.clientY}px`;
+    cursorRing.style.left = `${e.clientX}px`;
+    cursorRing.style.top = `${e.clientY}px`;
+  });
+
+  document.addEventListener("mouseover", (e) => {
+    if (e.target.closest(CURSOR_HOVER_SELECTOR)) {
+      document.body.classList.add("cursor-hovering");
+    }
+  });
+
+  document.addEventListener("mouseout", (e) => {
+    if (e.target.closest(CURSOR_HOVER_SELECTOR)) {
+      document.body.classList.remove("cursor-hovering");
+    }
+  });
+}
+
 // ---------- Realtime sync (mantém estoque e fotos atualizados entre os 3 usuários) ----------
 client
   .channel("wines-changes")
