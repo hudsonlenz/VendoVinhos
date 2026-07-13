@@ -215,6 +215,19 @@ main {
   padding: 4px 9px;
 }
 
+.espumante-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--gold);
+  color: var(--paper);
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 4px 9px;
+  text-transform: uppercase;
+}
+
 .wine-name {
   font-family: 'Playfair Display', serif;
   font-weight: 600;
