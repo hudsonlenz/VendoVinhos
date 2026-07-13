@@ -295,7 +295,7 @@ main {
   color: var(--muted);
 }
 
-.bottle-wrap img { cursor: zoom-in; }
+.bottle-wrap img { cursor: none; }
 
 .lightbox {
   position: fixed;
