@@ -129,6 +129,13 @@ main {
   color: var(--paper);
 }
 
+.add-wine-btn {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+  white-space: nowrap;
+}
+.add-wine-btn:hover { background: var(--bordeaux); color: var(--paper); }
+
 .wine-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
