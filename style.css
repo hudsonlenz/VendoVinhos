@@ -335,6 +335,29 @@ main {
 }
 .primary-btn:hover { background: var(--bordeaux); }
 
+.password-wrap {
+  position: relative;
+}
+.password-wrap input {
+  padding-right: 68px;
+}
+.toggle-password {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.toggle-password:hover { color: var(--ink); }
+
 .error-text { color: var(--bordeaux); font-size: 14px; margin-top: 10px; }
 .stock-hint { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
 .hidden { display: none !important; }

@@ -151,6 +151,15 @@ document.getElementById("closeLogin").addEventListener("click", () => {
   loginError.classList.add("hidden");
 });
 
+const togglePasswordBtn = document.getElementById("togglePassword");
+const loginPasswordInput = document.getElementById("loginPassword");
+togglePasswordBtn.addEventListener("click", () => {
+  const isHidden = loginPasswordInput.type === "password";
+  loginPasswordInput.type = isHidden ? "text" : "password";
+  togglePasswordBtn.textContent = isHidden ? "Esconder" : "Mostrar";
+  togglePasswordBtn.setAttribute("aria-label", isHidden ? "Esconder senha" : "Mostrar senha");
+});
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("loginEmail").value.trim();
