@@ -37,6 +37,13 @@ function bottlePlaceholderSVG() {
   </svg>`;
 }
 
+// Retorna a lista de fotos de um vinho, com fallback pra coluna antiga image_url
+function getImages(w) {
+  if (Array.isArray(w.image_urls) && w.image_urls.length > 0) return w.image_urls;
+  if (w.image_url) return [w.image_url];
+  return [];
+}
+
 async function loadWines() {
   const { data, error } = await client
     .from("wines")
@@ -90,6 +97,11 @@ function renderGrid() {
     if (sellBtn) sellBtn.addEventListener("click", () => openSaleModal(w));
     const editBtn = grid.querySelector(`.edit-btn[data-id="${w.id}"]`);
     if (editBtn) editBtn.addEventListener("click", () => openEditModal(w));
+
+    const photoEl = grid.querySelector(`.bottle-photo[data-id="${w.id}"]`);
+    if (photoEl) {
+      photoEl.addEventListener("click", () => openLightbox(getImages(w), 0, w.name));
+    }
   });
 }
 
@@ -97,13 +109,16 @@ function renderCard(w) {
   const isOut = w.stock <= 0;
   const lowStock = !isOut && w.stock <= 2;
   const priceStr = Number(w.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-  // Estoque (esgotado, últimas unidades, contagem) só aparece pra quem está logado
-  const showStockHints = !!currentUser;
+  const showStockHints = !!currentUser; // estoque só aparece pra quem está logado
+  const images = getImages(w);
 
   return `
   <div class="wine-card">
     <div class="bottle-wrap">
-      ${w.image_url ? `<img src="${w.image_url}" alt="${w.name}">` : bottlePlaceholderSVG()}
+      ${images.length > 0
+        ? `<img src="${images[0]}" alt="${w.name}" class="bottle-photo" data-id="${w.id}">`
+        : bottlePlaceholderSVG()}
+      ${images.length > 1 ? `<div class="photo-count-badge">${images.length} fotos</div>` : ""}
       ${showStockHints && isOut ? `<div class="stamp">Esgotado</div>` : ""}
       ${showStockHints && lowStock ? `<div class="low-stock-badge">Últimas unidades</div>` : ""}
     </div>
@@ -120,6 +135,100 @@ function renderCard(w) {
     </div>
   </div>`;
 }
+
+// ---------- Lightbox (com navegação e arrastar) ----------
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+const lightboxStage = document.getElementById("lightboxStage");
+const lightboxCounter = document.getElementById("lightboxCounter");
+const lightboxPrev = document.getElementById("lightboxPrev");
+const lightboxNext = document.getElementById("lightboxNext");
+
+let galleryImages = [];
+let galleryIndex = 0;
+
+function openLightbox(images, startIndex, alt) {
+  if (!images || images.length === 0) return;
+  galleryImages = images;
+  galleryIndex = startIndex || 0;
+  lightboxImg.alt = alt || "";
+  updateLightboxImage();
+  lightbox.classList.remove("hidden");
+}
+
+function updateLightboxImage() {
+  lightboxImg.style.transform = "translateX(0px)";
+  lightboxImg.src = galleryImages[galleryIndex];
+  const multi = galleryImages.length > 1;
+  lightboxCounter.textContent = multi ? `${galleryIndex + 1} / ${galleryImages.length}` : "";
+  lightboxPrev.classList.toggle("hidden", !multi);
+  lightboxNext.classList.toggle("hidden", !multi);
+}
+
+function nextImage() {
+  galleryIndex = (galleryIndex + 1) % galleryImages.length;
+  updateLightboxImage();
+}
+
+function prevImage() {
+  galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+  updateLightboxImage();
+}
+
+function closeLightbox() {
+  lightbox.classList.add("hidden");
+  lightboxImg.src = "";
+  galleryImages = [];
+}
+
+document.getElementById("closeLightbox").addEventListener("click", closeLightbox);
+lightboxNext.addEventListener("click", nextImage);
+lightboxPrev.addEventListener("click", prevImage);
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+document.addEventListener("keydown", (e) => {
+  if (lightbox.classList.contains("hidden")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowRight") nextImage();
+  if (e.key === "ArrowLeft") prevImage();
+});
+
+// Arrastar (mouse e touch) pra navegar entre fotos
+let dragStartX = null;
+let dragging = false;
+
+lightboxStage.addEventListener("pointerdown", (e) => {
+  if (galleryImages.length <= 1) return;
+  dragStartX = e.clientX;
+  dragging = true;
+  lightboxImg.style.transition = "none";
+});
+
+lightboxStage.addEventListener("pointermove", (e) => {
+  if (!dragging || dragStartX === null) return;
+  const delta = e.clientX - dragStartX;
+  lightboxImg.style.transform = `translateX(${delta}px)`;
+});
+
+function endDrag(e) {
+  if (!dragging || dragStartX === null) return;
+  const delta = e.clientX - dragStartX;
+  lightboxImg.style.transition = "transform 0.2s ease";
+  dragging = false;
+  dragStartX = null;
+
+  if (Math.abs(delta) > 60) {
+    delta < 0 ? nextImage() : prevImage();
+  } else {
+    lightboxImg.style.transform = "translateX(0px)";
+  }
+}
+
+lightboxStage.addEventListener("pointerup", endDrag);
+lightboxStage.addEventListener("pointerleave", (e) => {
+  if (dragging) endDrag(e);
+});
 
 // ---------- Auth ----------
 
@@ -234,16 +343,18 @@ saleForm.addEventListener("submit", async (e) => {
   showToast(`Venda registrada: ${qty}x ${saleTargetWine.name}`);
 });
 
-// ---------- Edit wine ----------
+// ---------- Edit wine (com múltiplas fotos) ----------
 
 const editModal = document.getElementById("editModal");
 const editForm = document.getElementById("editForm");
 const editError = document.getElementById("editError");
-const editImagePreview = document.getElementById("editImagePreview");
 const editImageFile = document.getElementById("editImageFile");
 const editImageStatus = document.getElementById("editImageStatus");
+const editPhotosGrid = document.getElementById("editPhotosGrid");
 let editTargetWine = null;
-let pendingUploadFile = null; // holds the actual file/blob to upload (converted if HEIC)
+
+// Cada item: { type: 'existing', url } ou { type: 'new', file, previewUrl, contentType, ext }
+let editPhotos = [];
 
 function isHeic(file) {
   const name = file.name.toLowerCase();
@@ -251,9 +362,25 @@ function isHeic(file) {
     file.type === "image/heic" || file.type === "image/heif";
 }
 
+function renderEditPhotos() {
+  editPhotosGrid.innerHTML = editPhotos.map((p, i) => `
+    <div class="edit-photo-thumb">
+      <img src="${p.type === "existing" ? p.url : p.previewUrl}">
+      <button type="button" class="remove-photo-btn" data-index="${i}" aria-label="Remover foto">&times;</button>
+    </div>
+  `).join("");
+
+  editPhotosGrid.querySelectorAll(".remove-photo-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      editPhotos.splice(parseInt(btn.dataset.index, 10), 1);
+      renderEditPhotos();
+    });
+  });
+}
+
 function openEditModal(wine) {
   editTargetWine = wine;
-  pendingUploadFile = null;
+  editPhotos = getImages(wine).map(url => ({ type: "existing", url }));
   document.getElementById("editName").value = wine.name;
   document.getElementById("editVintage").value = wine.vintage || "";
   document.getElementById("editCategory").value = wine.category;
@@ -262,13 +389,8 @@ function openEditModal(wine) {
   document.getElementById("editStock").value = wine.stock;
   editImageFile.value = "";
   editImageStatus.textContent = "";
-  if (wine.image_url) {
-    editImagePreview.src = wine.image_url;
-    editImagePreview.classList.remove("hidden");
-  } else {
-    editImagePreview.classList.add("hidden");
-  }
   editError.classList.add("hidden");
+  renderEditPhotos();
   editModal.classList.remove("hidden");
 }
 
@@ -277,29 +399,44 @@ document.getElementById("closeEdit").addEventListener("click", () => {
 });
 
 editImageFile.addEventListener("change", async () => {
-  const file = editImageFile.files[0];
-  if (!file) return;
+  const files = Array.from(editImageFile.files);
+  if (files.length === 0) return;
 
-  if (isHeic(file)) {
-    editImageStatus.textContent = "Convertendo foto (formato iPhone)...";
-    try {
-      const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
-      const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
-      pendingUploadFile = jpegBlob;
-      editImagePreview.src = URL.createObjectURL(jpegBlob);
-      editImagePreview.classList.remove("hidden");
-      editImageStatus.textContent = "Foto convertida e pronta para salvar.";
-    } catch (err) {
-      console.error(err);
-      pendingUploadFile = null;
-      editImageStatus.textContent = "Não foi possível converter essa foto. Tente exportar como JPEG antes.";
+  const hasHeic = files.some(isHeic);
+  if (hasHeic) editImageStatus.textContent = "Convertendo fotos (formato iPhone)...";
+
+  for (const file of files) {
+    if (isHeic(file)) {
+      try {
+        const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
+        const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+        editPhotos.push({
+          type: "new",
+          file: jpegBlob,
+          previewUrl: URL.createObjectURL(jpegBlob),
+          contentType: "image/jpeg",
+          ext: "jpg",
+        });
+      } catch (err) {
+        console.error(err);
+        editImageStatus.textContent = "Não foi possível converter uma das fotos. Tente exportar como JPEG.";
+      }
+    } else {
+      editPhotos.push({
+        type: "new",
+        file,
+        previewUrl: URL.createObjectURL(file),
+        contentType: file.type,
+        ext: file.name.split(".").pop(),
+      });
     }
-  } else {
-    pendingUploadFile = file;
-    editImagePreview.src = URL.createObjectURL(file);
-    editImagePreview.classList.remove("hidden");
+  }
+
+  if (!hasHeic || editImageStatus.textContent.startsWith("Convertendo")) {
     editImageStatus.textContent = "";
   }
+  editImageFile.value = "";
+  renderEditPhotos();
 });
 
 editForm.addEventListener("submit", async (e) => {
@@ -311,33 +448,23 @@ editForm.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Salvando...";
 
   try {
-    let imageUrl = editTargetWine.image_url;
-    const file = editImageFile.files[0];
+    const imageUrls = [];
 
-    if (file && !pendingUploadFile) {
-      // Usuário escolheu um arquivo mas a conversão HEIC falhou ou ainda não terminou
-      throw new Error("Aguarde a conversão da foto terminar antes de salvar, ou escolha outra imagem.");
-    }
-
-    if (pendingUploadFile) {
-      const isConvertedHeic = isHeic(file) && pendingUploadFile !== file;
-      const ext = isConvertedHeic ? "jpg" : file.name.split(".").pop();
-      const path = `${editTargetWine.id}/${Date.now()}.${ext}`;
+    for (const photo of editPhotos) {
+      if (photo.type === "existing") {
+        imageUrls.push(photo.url);
+        continue;
+      }
+      const path = `${editTargetWine.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${photo.ext}`;
       const { error: uploadError } = await client
         .storage
         .from("wine-photos")
-        .upload(path, pendingUploadFile, {
-          upsert: true,
-          contentType: isConvertedHeic ? "image/jpeg" : file.type,
-        });
+        .upload(path, photo.file, { upsert: true, contentType: photo.contentType });
 
       if (uploadError) throw uploadError;
 
-      const { data: publicData } = client
-        .storage
-        .from("wine-photos")
-        .getPublicUrl(path);
-      imageUrl = publicData.publicUrl;
+      const { data: publicData } = client.storage.from("wine-photos").getPublicUrl(path);
+      imageUrls.push(publicData.publicUrl);
     }
 
     const updates = {
@@ -347,7 +474,8 @@ editForm.addEventListener("submit", async (e) => {
       description: document.getElementById("editDescription").value.trim(),
       price: parseFloat(document.getElementById("editPrice").value),
       stock: parseInt(document.getElementById("editStock").value, 10),
-      image_url: imageUrl,
+      image_urls: imageUrls,
+      image_url: imageUrls[0] || null,
     };
 
     const { error: updateError } = await client
@@ -358,17 +486,13 @@ editForm.addEventListener("submit", async (e) => {
     if (updateError) throw updateError;
 
     Object.assign(editTargetWine, updates);
-    pendingUploadFile = null;
-    editImageStatus.textContent = "";
     editModal.classList.add("hidden");
     buildFilterChips();
     renderGrid();
     showToast("Vinho atualizado com sucesso!");
   } catch (err) {
     console.error(err);
-    editError.textContent = err.message && err.message.includes("conversão")
-      ? err.message
-      : "Erro ao salvar. Confira os campos e tente de novo.";
+    editError.textContent = "Erro ao salvar. Confira os campos e tente de novo.";
     editError.classList.remove("hidden");
   } finally {
     submitBtn.disabled = false;
@@ -379,7 +503,7 @@ editForm.addEventListener("submit", async (e) => {
 // ---------- Search ----------
 searchInput.addEventListener("input", renderGrid);
 
-// ---------- Realtime sync (opcional, mantém estoque atualizado entre os 3 usuários) ----------
+// ---------- Realtime sync (mantém estoque e fotos atualizados entre os 3 usuários) ----------
 client
   .channel("wines-changes")
   .on("postgres_changes", { event: "UPDATE", schema: "public", table: "wines" }, (payload) => {
