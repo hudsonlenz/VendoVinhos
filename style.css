@@ -295,7 +295,9 @@ main {
   color: var(--muted);
 }
 
-.bottle-wrap img { cursor: zoom-in; }
+.bottle-wrap img {
+  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyOCcgaGVpZ2h0PSc0MCcgdmlld0JveD0nMCAwIDI4IDQwJz4KICA8cGF0aCBkPSdNMTEgMmg2djZjMCAyLjUgMyAzLjUgMyA3LjV2MjBBMi41IDIuNSAwIDAgMSAxNy41IDM4aC03QTIuNSAyLjUgMCAwIDEgOCAzNS41di0yMGMwLTQgMy01IDMtNy41VjJ6JyBmaWxsPScjZjdmNGVlJyBzdHJva2U9JyMxYjE4MTUnIHN0cm9rZS13aWR0aD0nMicvPgogIDxyZWN0IHg9JzguNScgeT0nMTknIHdpZHRoPScxMScgaGVpZ2h0PScxNicgcng9JzEnIGZpbGw9JyM2YjFlMmInLz4KICA8cmVjdCB4PScxMScgeT0nMScgd2lkdGg9JzYnIGhlaWdodD0nMycgZmlsbD0nIzFiMTgxNScvPgo8L3N2Zz4K") 6 4, zoom-in;
+}
 
 .lightbox {
   position: fixed;
