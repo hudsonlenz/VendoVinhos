@@ -341,7 +341,9 @@ main {
 .lightbox {
   position: fixed;
   inset: 0;
-  background: rgba(20,17,14,0.88);
+  background: rgba(20,17,14,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -351,12 +353,23 @@ main {
 .lightbox.hidden { display: none; }
 
 .lightbox-content {
+  position: relative;
   display: flex;
   background: var(--paper);
-  max-width: min(920px, 100%);
+  max-width: min(940px, 100%);
   width: 100%;
   max-height: 85vh;
-  box-shadow: 0 24px 70px rgba(0,0,0,0.45);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  opacity: 0;
+}
+.lightbox-content.anim-in {
+  animation: lightboxIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes lightboxIn {
+  from { opacity: 0; transform: scale(0.94) translateY(14px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .lightbox-media {
@@ -387,88 +400,116 @@ main {
 
 .lightbox-info {
   flex: 1 1 42%;
-  padding: 36px 34px;
+  padding: 40px 38px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
 .lightbox-category {
+  display: inline-flex;
+  align-self: flex-start;
   font-family: 'Playfair Display', serif;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold);
-  margin: 0 0 10px;
+  background: rgba(169,132,63,0.12);
+  border: 1px solid rgba(169,132,63,0.3);
+  border-radius: 999px;
+  padding: 5px 14px;
+  margin: 0 0 18px;
 }
 .lightbox-wine-name {
   font-family: 'Playfair Display', serif;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 600;
   margin: 0 0 16px;
   line-height: 1.25;
 }
 .lightbox-wine-desc {
   font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.6;
   color: #3b362f;
-  margin: 0 0 20px;
+  margin: 0 0 24px;
   flex-grow: 1;
 }
 .lightbox-wine-price {
   font-family: 'Playfair Display', serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 26px;
+  color: var(--bordeaux);
   margin: 0;
-  padding-top: 16px;
+  padding-top: 20px;
   border-top: 1px solid var(--line);
 }
 
 .lightbox-close {
   position: absolute;
-  top: -46px;
-  right: 0;
-  background: none;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(20,17,14,0.45);
+  backdrop-filter: blur(4px);
   border: none;
   color: var(--paper);
-  font-size: 36px;
+  font-size: 26px;
   cursor: pointer;
   line-height: 1;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.lightbox-close:hover {
+  background: var(--bordeaux);
+  transform: scale(1.06);
 }
 
 @media (max-width: 760px) {
-  .lightbox { padding: 0; }
-  .lightbox-content { flex-direction: column; max-height: 100vh; height: 100%; overflow-y: auto; }
-  .lightbox-media { min-height: 260px; flex: 0 0 auto; height: 42vh; }
-  .lightbox-info { padding: 24px 22px 32px; }
-  .lightbox-close { top: 14px; right: 14px; color: var(--paper); text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+  .lightbox { padding: 16px; }
+  .lightbox-content { flex-direction: column; max-height: 92vh; border-radius: 18px; }
+  .lightbox-media { min-height: 240px; flex: 0 0 auto; height: 40vh; }
+  .lightbox-info { padding: 26px 22px 30px; }
 }
 
 .lightbox-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(247,244,238,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(247,244,238,0.14);
+  backdrop-filter: blur(4px);
   border: none;
   color: var(--paper);
-  font-size: 42px;
-  width: 56px;
-  height: 56px;
+  font-size: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   line-height: 1;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
-.lightbox-nav:hover { background: rgba(247,244,238,0.25); }
-.lightbox-nav-prev { left: 20px; }
-.lightbox-nav-next { right: 20px; }
+.lightbox-nav:hover { background: rgba(247,244,238,0.3); transform: translateY(-50%) scale(1.06); }
+.lightbox-nav-prev { left: 16px; }
+.lightbox-nav-next { right: 16px; }
 .lightbox-counter {
   position: absolute;
-  bottom: 18px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   color: var(--paper);
   font-family: 'Playfair Display', serif;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 0.05em;
+  background: rgba(20,17,14,0.4);
+  backdrop-filter: blur(4px);
+  padding: 4px 12px;
+  border-radius: 999px;
 }
 
 .edit-photos-grid {
