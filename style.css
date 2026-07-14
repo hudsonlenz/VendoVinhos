@@ -443,6 +443,28 @@ main {
   border-top: 1px solid var(--line);
 }
 
+.whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 13px 20px;
+  background: #25D366;
+  color: #fff;
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.whatsapp-btn:hover {
+  background: #1ebe5a;
+  transform: translateY(-2px);
+}
+
 .lightbox-close {
   position: absolute;
   top: 18px;
