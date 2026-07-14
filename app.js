@@ -605,55 +605,28 @@ searchInput.addEventListener("input", renderGrid);
 
 // ---------- Cursor personalizado ----------
 const cursorDot = document.querySelector(".cursor-dot");
-const cursorRing = document.querySelector(".cursor-ring");
 const CURSOR_HOVER_SELECTOR =
   "button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn, " +
   ".primary-btn, .modal-close, .lightbox-nav, .lightbox-close, " +
   ".remove-photo-btn, .toggle-password";
 
-if (cursorDot && cursorRing && window.matchMedia("(hover: hover)").matches) {
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
-  let ringX = mouseX;
-  let ringY = mouseY;
-  let ringScale = 1;
-  let targetScale = 1;
-  let hovering = false;
-
+if (cursorDot && window.matchMedia("(hover: hover)").matches) {
   document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+    cursorDot.style.left = `${e.clientX}px`;
+    cursorDot.style.top = `${e.clientY}px`;
   });
 
   document.addEventListener("mouseover", (e) => {
     if (e.target.closest(CURSOR_HOVER_SELECTOR)) {
-      hovering = true;
-      targetScale = 1.9;
       document.body.classList.add("cursor-hovering");
     }
   });
 
   document.addEventListener("mouseout", (e) => {
     if (e.target.closest(CURSOR_HOVER_SELECTOR)) {
-      hovering = false;
-      targetScale = 1;
       document.body.classList.remove("cursor-hovering");
     }
   });
-
-  function animateCursorRing() {
-    // Suaviza a posição (o anel "persegue" o ponto com leve atraso)
-    ringX += (mouseX - ringX) * 0.2;
-    ringY += (mouseY - ringY) * 0.2;
-    ringScale += (targetScale - ringScale) * 0.2;
-
-    cursorRing.style.transform =
-      `translate(${ringX}px, ${ringY}px) translate(-50%, -50%) scale(${ringScale})`;
-
-    requestAnimationFrame(animateCursorRing);
-  }
-  animateCursorRing();
 }
 
 // ---------- Realtime sync (mantém estoque e fotos atualizados entre os 3 usuários) ----------
