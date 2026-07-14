@@ -560,6 +560,7 @@ main {
   height: 100%;
   object-fit: cover;
   border: 1px solid var(--line);
+  border-radius: 10px;
 }
 .remove-photo-btn {
   position: absolute;
@@ -595,6 +596,7 @@ main {
   max-width: 380px;
   width: 100%;
   position: relative;
+  border-radius: 20px;
   box-shadow: var(--shadow);
   max-height: 90vh;
   overflow-y: auto;
@@ -604,8 +606,9 @@ main {
   width: 100%;
   font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
-  padding: 9px 10px;
+  padding: 9px 12px;
   border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--cream);
   resize: vertical;
 }
@@ -616,6 +619,7 @@ main {
   object-fit: cover;
   margin-top: 8px;
   border: 1px solid var(--line);
+  border-radius: 12px;
 }
 .modal input[type="file"] {
   border: none;
@@ -645,8 +649,9 @@ main {
   width: 100%;
   font-family: 'Cormorant Garamond', serif;
   font-size: 17px;
-  padding: 9px 10px;
+  padding: 9px 12px;
   border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--cream);
 }
 .modal-close {
@@ -666,6 +671,7 @@ main {
   background: var(--ink);
   color: var(--paper);
   border: none;
+  border-radius: 999px;
   padding: 12px;
   font-family: 'Playfair Display', serif;
   font-size: 14px;
