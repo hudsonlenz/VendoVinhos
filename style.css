@@ -755,7 +755,7 @@ button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn,
 }
 
 body.cursor-hovering .cursor-ring {
-  transform: translate(-50%, -50%) scale(1.7);
+  transform: translate(-50%, -50%) scale(1.35);
   border-color: var(--bordeaux);
   background-color: rgba(107, 30, 43, 0.08);
 }
