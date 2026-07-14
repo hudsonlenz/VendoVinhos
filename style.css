@@ -731,32 +731,23 @@ button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn,
 .primary-btn, .modal-close, .lightbox-nav, .lightbox-close,
 .remove-photo-btn, .toggle-password { cursor: none; }
 
-.cursor-dot,
-.cursor-ring {
+.cursor-dot {
   position: fixed;
   top: 0;
   left: 0;
   pointer-events: none;
   z-index: 9999;
   border-radius: 50%;
-  will-change: transform;
-}
-.cursor-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background-color: var(--bordeaux);
-  transition: opacity 180ms ease;
-}
-.cursor-ring {
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid #fff;
-  mix-blend-mode: difference;
-  transition: opacity 180ms ease;
+  transform: translate(-50%, -50%);
+  transition: transform 150ms ease, background-color 150ms ease;
 }
 
 body.cursor-hovering .cursor-dot {
-  opacity: 0;
+  transform: translate(-50%, -50%) scale(2.4);
+  background-color: rgba(107, 30, 43, 0.55);
 }
 
 /* Sem cursor customizado em telas de toque */
@@ -765,9 +756,9 @@ body.cursor-hovering .cursor-dot {
   button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn,
   .primary-btn, .modal-close, .lightbox-nav, .lightbox-close,
   .remove-photo-btn, .toggle-password { cursor: pointer; }
-  .cursor-dot, .cursor-ring { display: none; }
+  .cursor-dot { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cursor-dot, .cursor-ring { transition: none; }
+  .cursor-dot { transition: none; }
 }
