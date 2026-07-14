@@ -184,6 +184,7 @@ function renderCard(w) {
 
 // ---------- Lightbox (com detalhes do vinho e navegação) ----------
 const lightbox = document.getElementById("lightbox");
+const lightboxContent = document.getElementById("lightboxContent");
 const lightboxImg = document.getElementById("lightboxImg");
 const lightboxStage = document.getElementById("lightboxStage");
 const lightboxCounter = document.getElementById("lightboxCounter");
@@ -213,6 +214,9 @@ function openLightbox(wine) {
   lightboxPrice.textContent = `R$ ${priceStr}`;
 
   lightbox.classList.remove("hidden");
+  lightboxContent.classList.remove("anim-in");
+  void lightboxContent.offsetWidth; // força reflow pra reiniciar a animação
+  lightboxContent.classList.add("anim-in");
 }
 
 function updateLightboxImage() {
