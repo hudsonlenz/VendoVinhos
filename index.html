@@ -109,15 +109,25 @@
   </div>
 </div>
 
-<!-- Lightbox: foto ampliada, com navegação -->
+<!-- Lightbox: foto ampliada + detalhes do vinho -->
 <div id="lightbox" class="lightbox hidden">
   <button id="closeLightbox" class="lightbox-close">&times;</button>
-  <button id="lightboxPrev" class="lightbox-nav lightbox-nav-prev hidden" aria-label="Foto anterior">&#8249;</button>
-  <div id="lightboxStage" class="lightbox-stage">
-    <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-content">
+    <div class="lightbox-media">
+      <button id="lightboxPrev" class="lightbox-nav lightbox-nav-prev hidden" aria-label="Foto anterior">&#8249;</button>
+      <div id="lightboxStage" class="lightbox-stage">
+        <img id="lightboxImg" src="" alt="">
+      </div>
+      <button id="lightboxNext" class="lightbox-nav lightbox-nav-next hidden" aria-label="Próxima foto">&#8250;</button>
+      <div id="lightboxCounter" class="lightbox-counter"></div>
+    </div>
+    <div class="lightbox-info">
+      <p id="lightboxCategory" class="lightbox-category"></p>
+      <h2 id="lightboxName" class="lightbox-wine-name"></h2>
+      <p id="lightboxDesc" class="lightbox-wine-desc"></p>
+      <p id="lightboxPrice" class="lightbox-wine-price"></p>
+    </div>
   </div>
-  <button id="lightboxNext" class="lightbox-nav lightbox-nav-next hidden" aria-label="Próxima foto">&#8250;</button>
-  <div id="lightboxCounter" class="lightbox-counter"></div>
 </div>
 
 <div id="toast" class="toast hidden"></div>
