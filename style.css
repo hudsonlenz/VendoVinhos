@@ -739,28 +739,24 @@ button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn,
   pointer-events: none;
   z-index: 9999;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 180ms ease, background-color 180ms ease, border-color 180ms ease;
+  will-change: transform;
 }
 .cursor-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   background-color: var(--bordeaux);
-  transition-duration: 60ms;
+  transition: opacity 180ms ease;
 }
 .cursor-ring {
-  width: 34px;
-  height: 34px;
-  border: 1.5px solid rgba(107, 30, 43, 0.45);
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #fff;
+  mix-blend-mode: difference;
+  transition: opacity 180ms ease;
 }
 
-body.cursor-hovering .cursor-ring {
-  transform: translate(-50%, -50%) scale(1.35);
-  border-color: var(--bordeaux);
-  background-color: rgba(107, 30, 43, 0.08);
-}
 body.cursor-hovering .cursor-dot {
-  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
 }
 
 /* Sem cursor customizado em telas de toque */
