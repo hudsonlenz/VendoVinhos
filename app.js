@@ -194,6 +194,8 @@ const lightboxCategory = document.getElementById("lightboxCategory");
 const lightboxName = document.getElementById("lightboxName");
 const lightboxDesc = document.getElementById("lightboxDesc");
 const lightboxPrice = document.getElementById("lightboxPrice");
+const lightboxWhatsapp = document.getElementById("lightboxWhatsapp");
+const WHATSAPP_NUMBER = "5547999674451"; // (47) 99967-4451, com código do país
 
 let galleryImages = [];
 let galleryIndex = 0;
@@ -212,6 +214,10 @@ function openLightbox(wine) {
   lightboxDesc.textContent = wine.description || "";
   const priceStr = Number(wine.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
   lightboxPrice.textContent = `R$ ${priceStr}`;
+
+  const wineLabel = `${wine.name}${wine.vintage ? " " + wine.vintage : ""}`;
+  const message = `Olá! Tenho interesse no vinho: ${wineLabel} (R$ ${priceStr}). Ainda está disponível?`;
+  lightboxWhatsapp.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
   lightbox.classList.remove("hidden");
   lightboxContent.classList.remove("anim-in");
