@@ -121,7 +121,7 @@ function renderGrid() {
 
     const photoEl = grid.querySelector(`.bottle-photo[data-id="${w.id}"]`);
     if (photoEl) {
-      photoEl.addEventListener("click", () => openLightbox(getImages(w), 0, w.name));
+      photoEl.addEventListener("click", () => openLightbox(w));
     }
   });
 }
@@ -182,23 +182,36 @@ function renderCard(w) {
   </div>`;
 }
 
-// ---------- Lightbox (com navegação e arrastar) ----------
+// ---------- Lightbox (com detalhes do vinho e navegação) ----------
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightboxImg");
 const lightboxStage = document.getElementById("lightboxStage");
 const lightboxCounter = document.getElementById("lightboxCounter");
 const lightboxPrev = document.getElementById("lightboxPrev");
 const lightboxNext = document.getElementById("lightboxNext");
+const lightboxCategory = document.getElementById("lightboxCategory");
+const lightboxName = document.getElementById("lightboxName");
+const lightboxDesc = document.getElementById("lightboxDesc");
+const lightboxPrice = document.getElementById("lightboxPrice");
 
 let galleryImages = [];
 let galleryIndex = 0;
 
-function openLightbox(images, startIndex, alt) {
-  if (!images || images.length === 0) return;
+function openLightbox(wine) {
+  const images = getImages(wine);
+  if (images.length === 0) return;
+
   galleryImages = images;
-  galleryIndex = startIndex || 0;
-  lightboxImg.alt = alt || "";
+  galleryIndex = 0;
+  lightboxImg.alt = wine.name;
   updateLightboxImage();
+
+  lightboxCategory.textContent = wine.category || "";
+  lightboxName.textContent = `${wine.name}${wine.vintage ? " " + wine.vintage : ""}`;
+  lightboxDesc.textContent = wine.description || "";
+  const priceStr = Number(wine.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  lightboxPrice.textContent = `R$ ${priceStr}`;
+
   lightbox.classList.remove("hidden");
 }
 
