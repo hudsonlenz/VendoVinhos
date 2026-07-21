@@ -1,6 +1,32 @@
 const { createClient } = supabase;
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ---------- Tema claro/escuro ----------
+const THEME_STORAGE_KEY = "vendovinhos-theme";
+const themeToggle = document.getElementById("themeToggle");
+const iconSun = document.getElementById("iconSun");
+const iconMoon = document.getElementById("iconMoon");
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  iconSun.classList.toggle("hidden", theme === "dark");
+  iconMoon.classList.toggle("hidden", theme !== "dark");
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(saved || (prefersDark ? "dark" : "light"));
+}
+
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+
+initTheme();
+
 let wines = [];
 let currentUser = null;
 let activeCategory = "Todos";
@@ -355,6 +381,8 @@ lightboxStage.addEventListener("pointerdown", (e) => {
   dragMoved = false;
   lightboxImg.style.transition = "none";
   if (zoomScale > 1) lightboxImg.classList.add("is-panning");
+  // Mantém o arrasto funcionando mesmo se o mouse sair da área da foto
+  lightboxStage.setPointerCapture(e.pointerId);
 });
 
 lightboxStage.addEventListener("pointermove", (e) => {
@@ -380,6 +408,9 @@ function endDrag(e) {
   dragStartX = null;
   lightboxImg.classList.remove("is-panning");
   lightboxImg.style.transition = "transform 0.2s ease";
+  if (e.pointerId !== undefined && lightboxStage.hasPointerCapture(e.pointerId)) {
+    lightboxStage.releasePointerCapture(e.pointerId);
+  }
 
   if (zoomScale > 1) {
     return; // já ficou na posição arrastada, sem trocar de foto
@@ -718,7 +749,7 @@ const cursorDot = document.querySelector(".cursor-dot");
 const CURSOR_HOVER_SELECTOR =
   "button, a, .chip, .bottle-photo, .wine-card, .staff-btn, .sell-btn, .edit-btn, " +
   ".primary-btn, .modal-close, .lightbox-nav, .lightbox-close, " +
-  ".remove-photo-btn, .toggle-password";
+  ".remove-photo-btn, .toggle-password, .theme-toggle";
 
 if (cursorDot && window.matchMedia("(hover: hover)").matches) {
   document.addEventListener("mousemove", (e) => {
