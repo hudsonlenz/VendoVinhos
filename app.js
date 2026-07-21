@@ -190,6 +190,7 @@ const lightboxStage = document.getElementById("lightboxStage");
 const lightboxCounter = document.getElementById("lightboxCounter");
 const lightboxPrev = document.getElementById("lightboxPrev");
 const lightboxNext = document.getElementById("lightboxNext");
+const lightboxThumbs = document.getElementById("lightboxThumbs");
 const lightboxCategory = document.getElementById("lightboxCategory");
 const lightboxName = document.getElementById("lightboxName");
 const lightboxDesc = document.getElementById("lightboxDesc");
@@ -200,6 +201,11 @@ const WHATSAPP_NUMBER = "5547999674451"; // (47) 99967-4451, com código do paí
 let galleryImages = [];
 let galleryIndex = 0;
 
+// Estado do zoom
+let zoomScale = 1;
+let panX = 0;
+let panY = 0;
+
 function openLightbox(wine) {
   const images = getImages(wine);
   if (images.length === 0) return;
@@ -207,7 +213,9 @@ function openLightbox(wine) {
   galleryImages = images;
   galleryIndex = 0;
   lightboxImg.alt = wine.name;
+  resetZoom();
   updateLightboxImage();
+  buildLightboxThumbs();
 
   lightboxCategory.textContent = wine.category || "";
   lightboxName.textContent = `${wine.name}${wine.vintage ? " " + wine.vintage : ""}`;
@@ -225,22 +233,48 @@ function openLightbox(wine) {
   lightboxContent.classList.add("anim-in");
 }
 
+function buildLightboxThumbs() {
+  const multi = galleryImages.length > 1;
+  lightboxThumbs.classList.toggle("hidden", !multi);
+  if (!multi) {
+    lightboxThumbs.innerHTML = "";
+    return;
+  }
+  lightboxThumbs.innerHTML = galleryImages
+    .map((src, i) => `<img src="${src}" class="lightbox-thumb" data-index="${i}">`)
+    .join("");
+}
+
+lightboxThumbs.addEventListener("click", (e) => {
+  const thumb = e.target.closest(".lightbox-thumb");
+  if (!thumb) return;
+  galleryIndex = parseInt(thumb.dataset.index, 10);
+  resetZoom();
+  updateLightboxImage();
+});
+
 function updateLightboxImage() {
-  lightboxImg.style.transform = "translateX(0px)";
   lightboxImg.src = galleryImages[galleryIndex];
+  applyImgTransform();
   const multi = galleryImages.length > 1;
   lightboxCounter.textContent = multi ? `${galleryIndex + 1} / ${galleryImages.length}` : "";
   lightboxPrev.classList.toggle("hidden", !multi);
   lightboxNext.classList.toggle("hidden", !multi);
+
+  lightboxThumbs.querySelectorAll(".lightbox-thumb").forEach((thumb, i) => {
+    thumb.classList.toggle("active", i === galleryIndex);
+  });
 }
 
 function nextImage() {
   galleryIndex = (galleryIndex + 1) % galleryImages.length;
+  resetZoom();
   updateLightboxImage();
 }
 
 function prevImage() {
   galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+  resetZoom();
   updateLightboxImage();
 }
 
@@ -259,36 +293,97 @@ lightbox.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => {
   if (lightbox.classList.contains("hidden")) return;
   if (e.key === "Escape") closeLightbox();
-  if (e.key === "ArrowRight") nextImage();
-  if (e.key === "ArrowLeft") prevImage();
+  if (e.key === "ArrowRight" && zoomScale === 1) nextImage();
+  if (e.key === "ArrowLeft" && zoomScale === 1) prevImage();
 });
 
-// Arrastar (mouse e touch) pra navegar entre fotos
+// ---------- Zoom ----------
+const ZOOM_LEVEL = 2.4;
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 3.5;
+
+function applyImgTransform() {
+  lightboxImg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+  lightboxImg.classList.toggle("is-zoomed", zoomScale > 1);
+}
+
+function resetZoom() {
+  zoomScale = 1;
+  panX = 0;
+  panY = 0;
+  lightboxImg.style.transition = "none";
+  applyImgTransform();
+}
+
+function clampPan() {
+  // Limita o quanto dá pra arrastar a imagem ampliada pra fora da área visível
+  const stageRect = lightboxStage.getBoundingClientRect();
+  const maxX = (stageRect.width * (zoomScale - 1)) / 2;
+  const maxY = (stageRect.height * (zoomScale - 1)) / 2;
+  panX = Math.max(-maxX, Math.min(maxX, panX));
+  panY = Math.max(-maxY, Math.min(maxY, panY));
+}
+
+// Clique alterna entre normal e ampliado; roda do mouse ajusta o zoom aos poucos
+lightboxImg.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.25 : -0.25;
+  zoomScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoomScale + delta));
+  if (zoomScale === 1) { panX = 0; panY = 0; }
+  clampPan();
+  lightboxImg.style.transition = "transform 0.12s ease";
+  applyImgTransform();
+}, { passive: false });
+
+// Arrastar (mouse e touch): navega entre fotos quando normal, arrasta a imagem quando ampliada
 let dragStartX = null;
+let dragStartY = null;
 let dragging = false;
+let dragMoved = false;
+let panStartX = 0;
+let panStartY = 0;
 
 lightboxStage.addEventListener("pointerdown", (e) => {
-  if (galleryImages.length <= 1) return;
   dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  panStartX = panX;
+  panStartY = panY;
   dragging = true;
+  dragMoved = false;
   lightboxImg.style.transition = "none";
+  if (zoomScale > 1) lightboxImg.classList.add("is-panning");
 });
 
 lightboxStage.addEventListener("pointermove", (e) => {
   if (!dragging || dragStartX === null) return;
-  const delta = e.clientX - dragStartX;
-  lightboxImg.style.transform = `translateX(${delta}px)`;
+  const deltaX = e.clientX - dragStartX;
+  const deltaY = e.clientY - dragStartY;
+  if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) dragMoved = true;
+
+  if (zoomScale > 1) {
+    panX = panStartX + deltaX;
+    panY = panStartY + deltaY;
+    clampPan();
+    applyImgTransform();
+  } else if (galleryImages.length > 1) {
+    lightboxImg.style.transform = `translateX(${deltaX}px)`;
+  }
 });
 
 function endDrag(e) {
   if (!dragging || dragStartX === null) return;
-  const delta = e.clientX - dragStartX;
-  lightboxImg.style.transition = "transform 0.2s ease";
+  const deltaX = e.clientX - dragStartX;
   dragging = false;
   dragStartX = null;
+  lightboxImg.classList.remove("is-panning");
+  lightboxImg.style.transition = "transform 0.2s ease";
 
-  if (Math.abs(delta) > 60) {
-    delta < 0 ? nextImage() : prevImage();
+  if (zoomScale > 1) {
+    return; // já ficou na posição arrastada, sem trocar de foto
+  }
+
+  if (galleryImages.length > 1 && Math.abs(deltaX) > 60) {
+    deltaX < 0 ? nextImage() : prevImage();
   } else {
     lightboxImg.style.transform = "translateX(0px)";
   }
@@ -297,6 +392,18 @@ function endDrag(e) {
 lightboxStage.addEventListener("pointerup", endDrag);
 lightboxStage.addEventListener("pointerleave", (e) => {
   if (dragging) endDrag(e);
+});
+
+// Clique simples (sem arrastar) alterna o zoom
+lightboxStage.addEventListener("click", () => {
+  if (dragMoved) return;
+  lightboxImg.style.transition = "transform 0.2s ease";
+  if (zoomScale > 1) {
+    resetZoom();
+  } else {
+    zoomScale = ZOOM_LEVEL;
+    applyImgTransform();
+  }
 });
 
 // ---------- Auth ----------
