@@ -119,9 +119,12 @@ function renderGrid() {
     const visBtn = grid.querySelector(`.visibility-btn[data-id="${w.id}"]`);
     if (visBtn) visBtn.addEventListener("click", () => toggleHidden(w));
 
-    const photoEl = grid.querySelector(`.bottle-photo[data-id="${w.id}"]`);
-    if (photoEl) {
-      photoEl.addEventListener("click", () => openLightbox(w));
+    const cardEl = grid.querySelector(`.wine-card[data-id="${w.id}"]`);
+    if (cardEl) {
+      cardEl.addEventListener("click", (e) => {
+        if (e.target.closest(".staff-controls")) return;
+        openLightbox(w);
+      });
     }
   });
 }
@@ -154,7 +157,7 @@ function renderCard(w) {
   const eyeOffSVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a20.3 20.3 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
   return `
-  <div class="wine-card">
+  <div class="wine-card" data-id="${w.id}">
     <div class="bottle-wrap">
       ${images.length > 0
         ? `<img src="${images[0]}" alt="${w.name}" class="bottle-photo" data-id="${w.id}">`
@@ -713,7 +716,7 @@ searchInput.addEventListener("input", renderGrid);
 // ---------- Cursor personalizado ----------
 const cursorDot = document.querySelector(".cursor-dot");
 const CURSOR_HOVER_SELECTOR =
-  "button, a, .chip, .bottle-photo, .staff-btn, .sell-btn, .edit-btn, " +
+  "button, a, .chip, .bottle-photo, .wine-card, .staff-btn, .sell-btn, .edit-btn, " +
   ".primary-btn, .modal-close, .lightbox-nav, .lightbox-close, " +
   ".remove-photo-btn, .toggle-password";
 
