@@ -153,6 +153,16 @@ main {
   position: relative;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  cursor: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.wine-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 6px 20px rgba(27,24,21,0.08);
+  transform: translateY(-2px);
 }
 
 .bottle-wrap {
