@@ -463,6 +463,8 @@ main {
   max-height: 85vh;
   object-fit: contain;
   user-select: none;
+  -webkit-user-drag: none;
+  user-drag: none;
   cursor: zoom-in;
 }
 .lightbox-media img.is-zoomed {
